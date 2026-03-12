@@ -90,7 +90,7 @@ class _TossCoinState extends State<TossCoin> with SingleTickerProviderStateMixin
                   ..setEntry(3, 2, 0.001)
                   ..rotateY(value * 3.14159 * 14)
                   ..scale((1.0 + (value < 0.5 ? value : 1.0 - value) * 0.3)),
-                child: _ProgrammaticCoin(showHeads: showHeads, size: 140),
+                child: _ProgrammaticCoin(showHeads: showHeads, size: 120),
               );
             },
           ),

@@ -31,24 +31,30 @@ _$ScoringStateImpl _$$ScoringStateImplFromJson(Map<String, dynamic> json) =>
           .map((e) => e as String)
           .toList(),
       isTeamABatting: json['isTeamABatting'] as bool? ?? true,
+      bowlerNameToIndex:
+          (json['bowlerNameToIndex'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toInt()),
+          ) ??
+          const {},
+      nextBowlerIndex: (json['nextBowlerIndex'] as num?)?.toInt() ?? 0,
       bowlerLegalBalls:
           (json['bowlerLegalBalls'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, (e as num).toInt()),
+            (k, e) => MapEntry(int.parse(k), (e as num).toInt()),
           ) ??
           const {},
       bowlerDotBalls:
           (json['bowlerDotBalls'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, (e as num).toInt()),
+            (k, e) => MapEntry(int.parse(k), (e as num).toInt()),
           ) ??
           const {},
       bowlerWickets:
           (json['bowlerWickets'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, (e as num).toInt()),
+            (k, e) => MapEntry(int.parse(k), (e as num).toInt()),
           ) ??
           const {},
       bowlerRuns:
           (json['bowlerRuns'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, (e as num).toInt()),
+            (k, e) => MapEntry(int.parse(k), (e as num).toInt()),
           ) ??
           const {},
       isFirstInnings: json['isFirstInnings'] as bool? ?? true,
@@ -66,38 +72,47 @@ _$ScoringStateImpl _$$ScoringStateImplFromJson(Map<String, dynamic> json) =>
           const [],
     );
 
-Map<String, dynamic> _$$ScoringStateImplToJson(_$ScoringStateImpl instance) =>
-    <String, dynamic>{
-      'matchId': instance.matchId,
-      'inningsId': instance.inningsId,
-      'teamAName': instance.teamAName,
-      'teamBName': instance.teamBName,
-      'strikerId': instance.strikerId,
-      'nonStrikerId': instance.nonStrikerId,
-      'strikerRuns': instance.strikerRuns,
-      'strikerBalls': instance.strikerBalls,
-      'nonStrikerRuns': instance.nonStrikerRuns,
-      'nonStrikerBalls': instance.nonStrikerBalls,
-      'bowlerId': instance.bowlerId,
-      'lastBowlerId': instance.lastBowlerId,
-      'totalRuns': instance.totalRuns,
-      'totalWickets': instance.totalWickets,
-      'legalBallsThisOver': instance.legalBallsThisOver,
-      'totalLegalBalls': instance.totalLegalBalls,
-      'currentOverBalls': instance.currentOverBalls,
-      'previousBowlers': instance.previousBowlers,
-      'isTeamABatting': instance.isTeamABatting,
-      'bowlerLegalBalls': instance.bowlerLegalBalls,
-      'bowlerDotBalls': instance.bowlerDotBalls,
-      'bowlerWickets': instance.bowlerWickets,
-      'bowlerRuns': instance.bowlerRuns,
-      'isFirstInnings': instance.isFirstInnings,
-      'targetRuns': instance.targetRuns,
-      'isMatchComplete': instance.isMatchComplete,
-      'winnerName': instance.winnerName,
-      'lastBallId': instance.lastBallId,
-      'lastBallWicket': instance.lastBallWicket,
-      'isLastManMode': instance.isLastManMode,
-      'canEnableLastMan': instance.canEnableLastMan,
-      'history': instance.history,
-    };
+Map<String, dynamic> _$$ScoringStateImplToJson(
+  _$ScoringStateImpl instance,
+) => <String, dynamic>{
+  'matchId': instance.matchId,
+  'inningsId': instance.inningsId,
+  'teamAName': instance.teamAName,
+  'teamBName': instance.teamBName,
+  'strikerId': instance.strikerId,
+  'nonStrikerId': instance.nonStrikerId,
+  'strikerRuns': instance.strikerRuns,
+  'strikerBalls': instance.strikerBalls,
+  'nonStrikerRuns': instance.nonStrikerRuns,
+  'nonStrikerBalls': instance.nonStrikerBalls,
+  'bowlerId': instance.bowlerId,
+  'lastBowlerId': instance.lastBowlerId,
+  'totalRuns': instance.totalRuns,
+  'totalWickets': instance.totalWickets,
+  'legalBallsThisOver': instance.legalBallsThisOver,
+  'totalLegalBalls': instance.totalLegalBalls,
+  'currentOverBalls': instance.currentOverBalls,
+  'previousBowlers': instance.previousBowlers,
+  'isTeamABatting': instance.isTeamABatting,
+  'bowlerNameToIndex': instance.bowlerNameToIndex,
+  'nextBowlerIndex': instance.nextBowlerIndex,
+  'bowlerLegalBalls': instance.bowlerLegalBalls.map(
+    (k, e) => MapEntry(k.toString(), e),
+  ),
+  'bowlerDotBalls': instance.bowlerDotBalls.map(
+    (k, e) => MapEntry(k.toString(), e),
+  ),
+  'bowlerWickets': instance.bowlerWickets.map(
+    (k, e) => MapEntry(k.toString(), e),
+  ),
+  'bowlerRuns': instance.bowlerRuns.map((k, e) => MapEntry(k.toString(), e)),
+  'isFirstInnings': instance.isFirstInnings,
+  'targetRuns': instance.targetRuns,
+  'isMatchComplete': instance.isMatchComplete,
+  'winnerName': instance.winnerName,
+  'lastBallId': instance.lastBallId,
+  'lastBallWicket': instance.lastBallWicket,
+  'isLastManMode': instance.isLastManMode,
+  'canEnableLastMan': instance.canEnableLastMan,
+  'history': instance.history,
+};

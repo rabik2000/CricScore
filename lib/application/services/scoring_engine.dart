@@ -131,22 +131,31 @@ class ScoringEngine {
     var currentBowlerId = event.bowlerId;
     var lastBowlerId = current.lastBowlerId;
 
-    // Update per-bowler stats for the current bowler
-    final bLegal = Map<String, int>.from(current.bowlerLegalBalls);
-    final bDots = Map<String, int>.from(current.bowlerDotBalls);
-    final bWickets = Map<String, int>.from(current.bowlerWickets);
-    final bRuns = Map<String, int>.from(current.bowlerRuns);
+    // Resolve or register the bowler in the registry
+    final bowlerRegistry = Map<String, int>.from(current.bowlerNameToIndex);
+    var nextBowlerIdx = current.nextBowlerIndex;
+    if (!bowlerRegistry.containsKey(currentBowlerId)) {
+      bowlerRegistry[currentBowlerId] = nextBowlerIdx;
+      nextBowlerIdx++;
+    }
+    final bowlerIdx = bowlerRegistry[currentBowlerId]!;
+
+    // Update per-bowler stats using stable integer index
+    final bLegal = Map<int, int>.from(current.bowlerLegalBalls);
+    final bDots = Map<int, int>.from(current.bowlerDotBalls);
+    final bWickets = Map<int, int>.from(current.bowlerWickets);
+    final bRuns = Map<int, int>.from(current.bowlerRuns);
 
     if (event.legalDelivery) {
-      bLegal[currentBowlerId] = (bLegal[currentBowlerId] ?? 0) + 1;
+      bLegal[bowlerIdx] = (bLegal[bowlerIdx] ?? 0) + 1;
     }
     if (event.legalDelivery && event.runsFromBat == 0 && event.extraRuns == 0 && !event.wicket) {
-      bDots[currentBowlerId] = (bDots[currentBowlerId] ?? 0) + 1;
+      bDots[bowlerIdx] = (bDots[bowlerIdx] ?? 0) + 1;
     }
     if (event.wicket && event.dismissalType != 'run_out') {
-      bWickets[currentBowlerId] = (bWickets[currentBowlerId] ?? 0) + 1;
+      bWickets[bowlerIdx] = (bWickets[bowlerIdx] ?? 0) + 1;
     }
-    bRuns[currentBowlerId] = (bRuns[currentBowlerId] ?? 0) + event.totalRuns;
+    bRuns[bowlerIdx] = (bRuns[bowlerIdx] ?? 0) + event.totalRuns;
 
     // Check for target chase completion
     if (!current.isFirstInnings && current.targetRuns != null) {
@@ -209,6 +218,8 @@ class ScoringEngine {
         currentOverBalls: ballsInOver,
         bowlerId: currentBowlerId,
         lastBowlerId: lastBowlerId,
+        bowlerNameToIndex: bowlerRegistry,
+        nextBowlerIndex: nextBowlerIdx,
         bowlerLegalBalls: bLegal,
         bowlerDotBalls: bDots,
         bowlerWickets: bWickets,
@@ -217,7 +228,7 @@ class ScoringEngine {
         isMatchComplete: isMatchComplete,
         winnerName: winnerName,
         lastBallWicket: event.wicket,
-        canEnableLastMan: totalWickets >= 3 && event.wicket,
+        canEnableLastMan: totalWickets >= 3 && event.wicket && !current.isLastManMode,
         isLastManMode: current.isLastManMode,
       );
     }
@@ -236,6 +247,8 @@ class ScoringEngine {
       currentOverBalls: ballsInOver,
       bowlerId: currentBowlerId,
       lastBowlerId: lastBowlerId,
+      bowlerNameToIndex: bowlerRegistry,
+      nextBowlerIndex: nextBowlerIdx,
       bowlerLegalBalls: bLegal,
       bowlerDotBalls: bDots,
       bowlerWickets: bWickets,
@@ -243,8 +256,41 @@ class ScoringEngine {
       isMatchComplete: isMatchComplete,
       winnerName: winnerName,
       lastBallWicket: event.wicket,
-      canEnableLastMan: totalWickets >= 3 && event.wicket,
+      canEnableLastMan: totalWickets >= 3 && event.wicket && !current.isLastManMode,
       isLastManMode: current.isLastManMode,
+    );
+  }
+
+  /// Single source of truth for transitioning from the 1st innings to the 2nd.
+  /// Used by finishInnings(), reconstructState(), and resumeMatch().
+  static ScoringState transitionToSecondInnings(ScoringState current) {
+    return current.copyWith(
+      isFirstInnings: false,
+      inningsId: 'innings2',
+      targetRuns: current.totalRuns + 1,
+      isTeamABatting: !current.isTeamABatting,
+      totalRuns: 0,
+      totalWickets: 0,
+      totalLegalBalls: 0,
+      legalBallsThisOver: 0,
+      currentOverBalls: [],
+      previousBowlers: [],
+      bowlerId: 'Bowler 1',
+      strikerId: 'Batsman 1',
+      nonStrikerId: 'Batsman 2',
+      strikerRuns: 0,
+      strikerBalls: 0,
+      nonStrikerRuns: 0,
+      nonStrikerBalls: 0,
+      bowlerNameToIndex: {},
+      nextBowlerIndex: 0,
+      bowlerLegalBalls: {},
+      bowlerDotBalls: {},
+      bowlerWickets: {},
+      bowlerRuns: {},
+      lastBowlerId: '',
+      isLastManMode: false,
+      canEnableLastMan: false,
     );
   }
 
@@ -254,62 +300,31 @@ class ScoringEngine {
     required String teamBName,
     required List<BallEvent> events,
   }) {
-    // Initial state is always Innings 1 start
     var currentState = ScoringState(
       matchId: matchId,
       inningsId: 'innings1',
       teamAName: teamAName,
       teamBName: teamBName,
-      strikerId: 'Select Striker',
-      nonStrikerId: 'Select Non-Striker',
-      bowlerId: 'Select Bowler',
+      strikerId: 'Batsman 1',
+      nonStrikerId: 'Batsman 2',
+      bowlerId: 'Bowler 1',
       totalRuns: 0,
       totalWickets: 0,
       legalBallsThisOver: 0,
       totalLegalBalls: 0,
       currentOverBalls: [],
       previousBowlers: [],
-      isTeamABatting: true, // Placeholder, will be corrected by events if needed
+      isTeamABatting: true,
     );
 
-    // Group events by innings and sort by timestamp
     final sortedEvents = List<BallEvent>.from(events)..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     for (final event in sortedEvents) {
-      // If event belongs to a different innings than current state, we need to transition
       if (event.inningsId != currentState.inningsId) {
-        // transitioning from innings 1 to innings 2
         if (currentState.isFirstInnings && event.inningsId == 'innings2') {
-           // This logic mirrors ScoringNotifier.finishInnings for 1st innings
-           currentState = currentState.copyWith(
-            isFirstInnings: false,
-            inningsId: 'innings2',
-            targetRuns: currentState.totalRuns + 1,
-            isTeamABatting: !currentState.isTeamABatting,
-            totalRuns: 0,
-            totalWickets: 0,
-            totalLegalBalls: 0,
-            legalBallsThisOver: 0,
-            currentOverBalls: [],
-            previousBowlers: [],
-            bowlerId: 'Select Bowler',
-            strikerId: 'Select Striker',
-            nonStrikerId: 'Select Non-Striker',
-            strikerRuns: 0,
-            strikerBalls: 0,
-            nonStrikerRuns: 0,
-            nonStrikerBalls: 0,
-            bowlerLegalBalls: {},
-            bowlerDotBalls: {},
-            bowlerWickets: {},
-            bowlerRuns: {},
-            lastBowlerId: '',
-            isLastManMode: false,
-            canEnableLastMan: false,
-          );
+          currentState = transitionToSecondInnings(currentState);
         }
       }
-      
       currentState = nextState(currentState, event);
     }
 

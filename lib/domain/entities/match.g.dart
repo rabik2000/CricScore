@@ -15,7 +15,6 @@ _$MatchImpl _$$MatchImplFromJson(Map<String, dynamic> json) => _$MatchImpl(
   tossDecision: json['tossDecision'] as String?,
   status: $enumDecode(_$MatchStatusEnumMap, json['status']),
   createdAt: DateTime.parse(json['createdAt'] as String),
-  targetRuns: (json['targetRuns'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$$MatchImplToJson(_$MatchImpl instance) =>
@@ -28,7 +27,6 @@ Map<String, dynamic> _$$MatchImplToJson(_$MatchImpl instance) =>
       'tossDecision': instance.tossDecision,
       'status': _$MatchStatusEnumMap[instance.status]!,
       'createdAt': instance.createdAt.toIso8601String(),
-      'targetRuns': instance.targetRuns,
     };
 
 const _$MatchStatusEnumMap = {

@@ -20,13 +20,13 @@ class BatsmanCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isStriking ? AppTheme.emeraldColor : Colors.transparent,
-          width: 3,
+          width: 2,
         ),
         boxShadow: [
           BoxShadow(
@@ -39,41 +39,43 @@ class BatsmanCard extends ConsumerWidget {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               if (isStriking)
-                const Icon(Icons.sports_cricket_rounded, color: AppTheme.emeraldColor, size: 16)
+                const Icon(Icons.sports_cricket_rounded, color: AppTheme.emeraldColor, size: 14)
               else
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
+              const SizedBox(width: 6),
+              Expanded(
+                child: InkWell(
+                  onTap: () => _showEditNameDialog(context, ref, name),
+                  child: Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.start,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.slateColor,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
               Material(
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () => _showEditNameDialog(context, ref, name),
                   borderRadius: BorderRadius.circular(4),
                   child: const Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: Icon(Icons.edit_note_rounded, color: AppTheme.slateLight, size: 18),
+                    padding: EdgeInsets.all(2.0),
+                    child: Icon(Icons.edit_note_rounded, color: AppTheme.slateLight, size: 16),
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          InkWell(
-            onTap: () => _showEditNameDialog(context, ref, name),
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                color: AppTheme.slateColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             textBaseline: TextBaseline.alphabetic,
@@ -82,7 +84,7 @@ class BatsmanCard extends ConsumerWidget {
               Text(
                 '$runs',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 22,
                   fontWeight: FontWeight.w900,
                   color: isStriking ? AppTheme.emeraldColor : AppTheme.slateColor,
                 ),
@@ -91,27 +93,18 @@ class BatsmanCard extends ConsumerWidget {
               Text(
                 '($balls)',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.slateLight,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'SR: ${balls > 0 ? ((runs / balls) * 100).toStringAsFixed(1) : '0.0'}',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.slateLight.withValues(alpha: 0.8),
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+// SR removed
+],
+),
+);
+}
 
   void _showEditNameDialog(BuildContext context, WidgetRef ref, String currentName) {
     final controller = TextEditingController(text: currentName);

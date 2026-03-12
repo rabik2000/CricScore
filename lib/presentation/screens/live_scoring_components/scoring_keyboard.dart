@@ -11,7 +11,7 @@ class ScoringKeyboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final needsBowler = ref.watch(scoringProvider.select((s) => 
-      s.value == null || s.value!.bowlerId == 'Select Bowler' || s.value!.bowlerId.trim().isEmpty
+      s.value == null || s.value!.bowlerId.trim().isEmpty
     ));
 
     void showSelectBowlerHint() {

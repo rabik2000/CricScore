@@ -39,11 +39,15 @@ mixin _$ScoringState {
   int get totalLegalBalls => throw _privateConstructorUsedError;
   List<String> get currentOverBalls => throw _privateConstructorUsedError;
   List<String> get previousBowlers => throw _privateConstructorUsedError;
-  bool get isTeamABatting => throw _privateConstructorUsedError;
-  Map<String, int> get bowlerLegalBalls => throw _privateConstructorUsedError;
-  Map<String, int> get bowlerDotBalls => throw _privateConstructorUsedError;
-  Map<String, int> get bowlerWickets => throw _privateConstructorUsedError;
-  Map<String, int> get bowlerRuns => throw _privateConstructorUsedError;
+  bool get isTeamABatting =>
+      throw _privateConstructorUsedError; // Bowler registry: stable index ↔ display name
+  Map<String, int> get bowlerNameToIndex => throw _privateConstructorUsedError;
+  int get nextBowlerIndex =>
+      throw _privateConstructorUsedError; // Bowler stats keyed by stable integer index (not fragile string names)
+  Map<int, int> get bowlerLegalBalls => throw _privateConstructorUsedError;
+  Map<int, int> get bowlerDotBalls => throw _privateConstructorUsedError;
+  Map<int, int> get bowlerWickets => throw _privateConstructorUsedError;
+  Map<int, int> get bowlerRuns => throw _privateConstructorUsedError;
   bool get isFirstInnings => throw _privateConstructorUsedError;
   int? get targetRuns => throw _privateConstructorUsedError;
   bool get isMatchComplete => throw _privateConstructorUsedError;
@@ -91,10 +95,12 @@ abstract class $ScoringStateCopyWith<$Res> {
     List<String> currentOverBalls,
     List<String> previousBowlers,
     bool isTeamABatting,
-    Map<String, int> bowlerLegalBalls,
-    Map<String, int> bowlerDotBalls,
-    Map<String, int> bowlerWickets,
-    Map<String, int> bowlerRuns,
+    Map<String, int> bowlerNameToIndex,
+    int nextBowlerIndex,
+    Map<int, int> bowlerLegalBalls,
+    Map<int, int> bowlerDotBalls,
+    Map<int, int> bowlerWickets,
+    Map<int, int> bowlerRuns,
     bool isFirstInnings,
     int? targetRuns,
     bool isMatchComplete,
@@ -141,6 +147,8 @@ class _$ScoringStateCopyWithImpl<$Res, $Val extends ScoringState>
     Object? currentOverBalls = null,
     Object? previousBowlers = null,
     Object? isTeamABatting = null,
+    Object? bowlerNameToIndex = null,
+    Object? nextBowlerIndex = null,
     Object? bowlerLegalBalls = null,
     Object? bowlerDotBalls = null,
     Object? bowlerWickets = null,
@@ -233,22 +241,30 @@ class _$ScoringStateCopyWithImpl<$Res, $Val extends ScoringState>
                 ? _value.isTeamABatting
                 : isTeamABatting // ignore: cast_nullable_to_non_nullable
                       as bool,
+            bowlerNameToIndex: null == bowlerNameToIndex
+                ? _value.bowlerNameToIndex
+                : bowlerNameToIndex // ignore: cast_nullable_to_non_nullable
+                      as Map<String, int>,
+            nextBowlerIndex: null == nextBowlerIndex
+                ? _value.nextBowlerIndex
+                : nextBowlerIndex // ignore: cast_nullable_to_non_nullable
+                      as int,
             bowlerLegalBalls: null == bowlerLegalBalls
                 ? _value.bowlerLegalBalls
                 : bowlerLegalBalls // ignore: cast_nullable_to_non_nullable
-                      as Map<String, int>,
+                      as Map<int, int>,
             bowlerDotBalls: null == bowlerDotBalls
                 ? _value.bowlerDotBalls
                 : bowlerDotBalls // ignore: cast_nullable_to_non_nullable
-                      as Map<String, int>,
+                      as Map<int, int>,
             bowlerWickets: null == bowlerWickets
                 ? _value.bowlerWickets
                 : bowlerWickets // ignore: cast_nullable_to_non_nullable
-                      as Map<String, int>,
+                      as Map<int, int>,
             bowlerRuns: null == bowlerRuns
                 ? _value.bowlerRuns
                 : bowlerRuns // ignore: cast_nullable_to_non_nullable
-                      as Map<String, int>,
+                      as Map<int, int>,
             isFirstInnings: null == isFirstInnings
                 ? _value.isFirstInnings
                 : isFirstInnings // ignore: cast_nullable_to_non_nullable
@@ -320,10 +336,12 @@ abstract class _$$ScoringStateImplCopyWith<$Res>
     List<String> currentOverBalls,
     List<String> previousBowlers,
     bool isTeamABatting,
-    Map<String, int> bowlerLegalBalls,
-    Map<String, int> bowlerDotBalls,
-    Map<String, int> bowlerWickets,
-    Map<String, int> bowlerRuns,
+    Map<String, int> bowlerNameToIndex,
+    int nextBowlerIndex,
+    Map<int, int> bowlerLegalBalls,
+    Map<int, int> bowlerDotBalls,
+    Map<int, int> bowlerWickets,
+    Map<int, int> bowlerRuns,
     bool isFirstInnings,
     int? targetRuns,
     bool isMatchComplete,
@@ -369,6 +387,8 @@ class __$$ScoringStateImplCopyWithImpl<$Res>
     Object? currentOverBalls = null,
     Object? previousBowlers = null,
     Object? isTeamABatting = null,
+    Object? bowlerNameToIndex = null,
+    Object? nextBowlerIndex = null,
     Object? bowlerLegalBalls = null,
     Object? bowlerDotBalls = null,
     Object? bowlerWickets = null,
@@ -461,22 +481,30 @@ class __$$ScoringStateImplCopyWithImpl<$Res>
             ? _value.isTeamABatting
             : isTeamABatting // ignore: cast_nullable_to_non_nullable
                   as bool,
+        bowlerNameToIndex: null == bowlerNameToIndex
+            ? _value._bowlerNameToIndex
+            : bowlerNameToIndex // ignore: cast_nullable_to_non_nullable
+                  as Map<String, int>,
+        nextBowlerIndex: null == nextBowlerIndex
+            ? _value.nextBowlerIndex
+            : nextBowlerIndex // ignore: cast_nullable_to_non_nullable
+                  as int,
         bowlerLegalBalls: null == bowlerLegalBalls
             ? _value._bowlerLegalBalls
             : bowlerLegalBalls // ignore: cast_nullable_to_non_nullable
-                  as Map<String, int>,
+                  as Map<int, int>,
         bowlerDotBalls: null == bowlerDotBalls
             ? _value._bowlerDotBalls
             : bowlerDotBalls // ignore: cast_nullable_to_non_nullable
-                  as Map<String, int>,
+                  as Map<int, int>,
         bowlerWickets: null == bowlerWickets
             ? _value._bowlerWickets
             : bowlerWickets // ignore: cast_nullable_to_non_nullable
-                  as Map<String, int>,
+                  as Map<int, int>,
         bowlerRuns: null == bowlerRuns
             ? _value._bowlerRuns
             : bowlerRuns // ignore: cast_nullable_to_non_nullable
-                  as Map<String, int>,
+                  as Map<int, int>,
         isFirstInnings: null == isFirstInnings
             ? _value.isFirstInnings
             : isFirstInnings // ignore: cast_nullable_to_non_nullable
@@ -541,10 +569,12 @@ class _$ScoringStateImpl implements _ScoringState {
     required final List<String> currentOverBalls,
     required final List<String> previousBowlers,
     this.isTeamABatting = true,
-    final Map<String, int> bowlerLegalBalls = const {},
-    final Map<String, int> bowlerDotBalls = const {},
-    final Map<String, int> bowlerWickets = const {},
-    final Map<String, int> bowlerRuns = const {},
+    final Map<String, int> bowlerNameToIndex = const {},
+    this.nextBowlerIndex = 0,
+    final Map<int, int> bowlerLegalBalls = const {},
+    final Map<int, int> bowlerDotBalls = const {},
+    final Map<int, int> bowlerWickets = const {},
+    final Map<int, int> bowlerRuns = const {},
     this.isFirstInnings = true,
     this.targetRuns,
     this.isMatchComplete = false,
@@ -556,6 +586,7 @@ class _$ScoringStateImpl implements _ScoringState {
     final List<ScoringState> history = const [],
   }) : _currentOverBalls = currentOverBalls,
        _previousBowlers = previousBowlers,
+       _bowlerNameToIndex = bowlerNameToIndex,
        _bowlerLegalBalls = bowlerLegalBalls,
        _bowlerDotBalls = bowlerDotBalls,
        _bowlerWickets = bowlerWickets,
@@ -624,37 +655,54 @@ class _$ScoringStateImpl implements _ScoringState {
   @override
   @JsonKey()
   final bool isTeamABatting;
-  final Map<String, int> _bowlerLegalBalls;
+  // Bowler registry: stable index ↔ display name
+  final Map<String, int> _bowlerNameToIndex;
+  // Bowler registry: stable index ↔ display name
   @override
   @JsonKey()
-  Map<String, int> get bowlerLegalBalls {
+  Map<String, int> get bowlerNameToIndex {
+    if (_bowlerNameToIndex is EqualUnmodifiableMapView)
+      return _bowlerNameToIndex;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_bowlerNameToIndex);
+  }
+
+  @override
+  @JsonKey()
+  final int nextBowlerIndex;
+  // Bowler stats keyed by stable integer index (not fragile string names)
+  final Map<int, int> _bowlerLegalBalls;
+  // Bowler stats keyed by stable integer index (not fragile string names)
+  @override
+  @JsonKey()
+  Map<int, int> get bowlerLegalBalls {
     if (_bowlerLegalBalls is EqualUnmodifiableMapView) return _bowlerLegalBalls;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_bowlerLegalBalls);
   }
 
-  final Map<String, int> _bowlerDotBalls;
+  final Map<int, int> _bowlerDotBalls;
   @override
   @JsonKey()
-  Map<String, int> get bowlerDotBalls {
+  Map<int, int> get bowlerDotBalls {
     if (_bowlerDotBalls is EqualUnmodifiableMapView) return _bowlerDotBalls;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_bowlerDotBalls);
   }
 
-  final Map<String, int> _bowlerWickets;
+  final Map<int, int> _bowlerWickets;
   @override
   @JsonKey()
-  Map<String, int> get bowlerWickets {
+  Map<int, int> get bowlerWickets {
     if (_bowlerWickets is EqualUnmodifiableMapView) return _bowlerWickets;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_bowlerWickets);
   }
 
-  final Map<String, int> _bowlerRuns;
+  final Map<int, int> _bowlerRuns;
   @override
   @JsonKey()
-  Map<String, int> get bowlerRuns {
+  Map<int, int> get bowlerRuns {
     if (_bowlerRuns is EqualUnmodifiableMapView) return _bowlerRuns;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_bowlerRuns);
@@ -692,7 +740,7 @@ class _$ScoringStateImpl implements _ScoringState {
 
   @override
   String toString() {
-    return 'ScoringState(matchId: $matchId, inningsId: $inningsId, teamAName: $teamAName, teamBName: $teamBName, strikerId: $strikerId, nonStrikerId: $nonStrikerId, strikerRuns: $strikerRuns, strikerBalls: $strikerBalls, nonStrikerRuns: $nonStrikerRuns, nonStrikerBalls: $nonStrikerBalls, bowlerId: $bowlerId, lastBowlerId: $lastBowlerId, totalRuns: $totalRuns, totalWickets: $totalWickets, legalBallsThisOver: $legalBallsThisOver, totalLegalBalls: $totalLegalBalls, currentOverBalls: $currentOverBalls, previousBowlers: $previousBowlers, isTeamABatting: $isTeamABatting, bowlerLegalBalls: $bowlerLegalBalls, bowlerDotBalls: $bowlerDotBalls, bowlerWickets: $bowlerWickets, bowlerRuns: $bowlerRuns, isFirstInnings: $isFirstInnings, targetRuns: $targetRuns, isMatchComplete: $isMatchComplete, winnerName: $winnerName, lastBallId: $lastBallId, lastBallWicket: $lastBallWicket, isLastManMode: $isLastManMode, canEnableLastMan: $canEnableLastMan, history: $history)';
+    return 'ScoringState(matchId: $matchId, inningsId: $inningsId, teamAName: $teamAName, teamBName: $teamBName, strikerId: $strikerId, nonStrikerId: $nonStrikerId, strikerRuns: $strikerRuns, strikerBalls: $strikerBalls, nonStrikerRuns: $nonStrikerRuns, nonStrikerBalls: $nonStrikerBalls, bowlerId: $bowlerId, lastBowlerId: $lastBowlerId, totalRuns: $totalRuns, totalWickets: $totalWickets, legalBallsThisOver: $legalBallsThisOver, totalLegalBalls: $totalLegalBalls, currentOverBalls: $currentOverBalls, previousBowlers: $previousBowlers, isTeamABatting: $isTeamABatting, bowlerNameToIndex: $bowlerNameToIndex, nextBowlerIndex: $nextBowlerIndex, bowlerLegalBalls: $bowlerLegalBalls, bowlerDotBalls: $bowlerDotBalls, bowlerWickets: $bowlerWickets, bowlerRuns: $bowlerRuns, isFirstInnings: $isFirstInnings, targetRuns: $targetRuns, isMatchComplete: $isMatchComplete, winnerName: $winnerName, lastBallId: $lastBallId, lastBallWicket: $lastBallWicket, isLastManMode: $isLastManMode, canEnableLastMan: $canEnableLastMan, history: $history)';
   }
 
   @override
@@ -741,6 +789,12 @@ class _$ScoringStateImpl implements _ScoringState {
             ) &&
             (identical(other.isTeamABatting, isTeamABatting) ||
                 other.isTeamABatting == isTeamABatting) &&
+            const DeepCollectionEquality().equals(
+              other._bowlerNameToIndex,
+              _bowlerNameToIndex,
+            ) &&
+            (identical(other.nextBowlerIndex, nextBowlerIndex) ||
+                other.nextBowlerIndex == nextBowlerIndex) &&
             const DeepCollectionEquality().equals(
               other._bowlerLegalBalls,
               _bowlerLegalBalls,
@@ -799,6 +853,8 @@ class _$ScoringStateImpl implements _ScoringState {
     const DeepCollectionEquality().hash(_currentOverBalls),
     const DeepCollectionEquality().hash(_previousBowlers),
     isTeamABatting,
+    const DeepCollectionEquality().hash(_bowlerNameToIndex),
+    nextBowlerIndex,
     const DeepCollectionEquality().hash(_bowlerLegalBalls),
     const DeepCollectionEquality().hash(_bowlerDotBalls),
     const DeepCollectionEquality().hash(_bowlerWickets),
@@ -849,10 +905,12 @@ abstract class _ScoringState implements ScoringState {
     required final List<String> currentOverBalls,
     required final List<String> previousBowlers,
     final bool isTeamABatting,
-    final Map<String, int> bowlerLegalBalls,
-    final Map<String, int> bowlerDotBalls,
-    final Map<String, int> bowlerWickets,
-    final Map<String, int> bowlerRuns,
+    final Map<String, int> bowlerNameToIndex,
+    final int nextBowlerIndex,
+    final Map<int, int> bowlerLegalBalls,
+    final Map<int, int> bowlerDotBalls,
+    final Map<int, int> bowlerWickets,
+    final Map<int, int> bowlerRuns,
     final bool isFirstInnings,
     final int? targetRuns,
     final bool isMatchComplete,
@@ -904,15 +962,19 @@ abstract class _ScoringState implements ScoringState {
   @override
   List<String> get previousBowlers;
   @override
-  bool get isTeamABatting;
+  bool get isTeamABatting; // Bowler registry: stable index ↔ display name
   @override
-  Map<String, int> get bowlerLegalBalls;
+  Map<String, int> get bowlerNameToIndex;
   @override
-  Map<String, int> get bowlerDotBalls;
+  int get nextBowlerIndex; // Bowler stats keyed by stable integer index (not fragile string names)
   @override
-  Map<String, int> get bowlerWickets;
+  Map<int, int> get bowlerLegalBalls;
   @override
-  Map<String, int> get bowlerRuns;
+  Map<int, int> get bowlerDotBalls;
+  @override
+  Map<int, int> get bowlerWickets;
+  @override
+  Map<int, int> get bowlerRuns;
   @override
   bool get isFirstInnings;
   @override

@@ -559,11 +559,11 @@ class _BowlingSection extends StatelessWidget {
       child: Row(
         children: [
           Expanded(flex: 7, child: Text('BOWLER', style: _headerStyle)),
-          Expanded(flex: 2, child: Text('OVERS', style: _headerStyle, textAlign: TextAlign.center)),
-          Expanded(flex: 1, child: Text('RUNS', style: _headerStyle, textAlign: TextAlign.center)),
-          Expanded(flex: 1, child: Text('WICKETS', style: _headerStyle, textAlign: TextAlign.center)),
-          Expanded(flex: 1, child: Text('DOTS', style: _headerStyle, textAlign: TextAlign.center)),
-          Expanded(flex: 3, child: Text('ECONOMY', style: _headerStyle, textAlign: TextAlign.center)),
+          Expanded(flex: 2, child: Text('OV', style: _headerStyle, textAlign: TextAlign.center)),
+          Expanded(flex: 1, child: Text('R', style: _headerStyle, textAlign: TextAlign.center)),
+          Expanded(flex: 1, child: Text('W', style: _headerStyle, textAlign: TextAlign.center)),
+          Expanded(flex: 1, child: Text('D', style: _headerStyle, textAlign: TextAlign.center)),
+          Expanded(flex: 3, child: Text('ECO', style: _headerStyle, textAlign: TextAlign.center)),
         ],
       ),
     );

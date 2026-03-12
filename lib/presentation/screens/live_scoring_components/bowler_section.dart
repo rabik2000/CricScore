@@ -8,9 +8,10 @@ class BowlerSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bowlerId = ref.watch(scoringProvider.select((s) => s.value?.bowlerId ?? 'Select Bowler'));
-    final bowlerLegalBalls = ref.watch(scoringProvider.select((s) => s.value?.bowlerLegalBalls[bowlerId] ?? 0));
-    final bowlerRuns = ref.watch(scoringProvider.select((s) => s.value?.bowlerRuns[bowlerId] ?? 0));
+    final bowlerId = ref.watch(scoringProvider.select((s) => s.value?.bowlerId ?? 'Bowler 1'));
+    final bowlerIdx = ref.watch(scoringProvider.select((s) => s.value?.bowlerNameToIndex[bowlerId]));
+    final bowlerLegalBalls = ref.watch(scoringProvider.select((s) => bowlerIdx != null ? (s.value?.bowlerLegalBalls[bowlerIdx] ?? 0) : 0));
+    final bowlerRuns = ref.watch(scoringProvider.select((s) => bowlerIdx != null ? (s.value?.bowlerRuns[bowlerIdx] ?? 0) : 0));
     final legalBallsThisOver = ref.watch(scoringProvider.select((s) => s.value?.legalBallsThisOver ?? 0));
 
     final overs = bowlerLegalBalls ~/ 6;
@@ -28,17 +29,17 @@ class BowlerSection extends ConsumerWidget {
             letterSpacing: 1.2,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: (legalBallsThisOver == 0 || bowlerId == 'Select Bowler')
+            onTap: (legalBallsThisOver == 0)
                 ? () => _showAddBowlerDialog(context, ref)
                 : () => ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Cannot change bowler in the middle of an over'))),
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -53,13 +54,13 @@ class BowlerSection extends ConsumerWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 32,
+                    height: 32,
                     decoration: const BoxDecoration(
                       color: Color(0xFFF1F5F9),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.sports_baseball_rounded, color: AppTheme.slateColor, size: 20),
+                    child: const Icon(Icons.sports_baseball_rounded, color: AppTheme.slateColor, size: 16),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -68,15 +69,15 @@ class BowlerSection extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              bowlerId,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.slateColor,
+                              Text(
+                                bowlerId,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.slateColor,
+                                ),
                               ),
-                            ),
-                            if (bowlerId != 'Select Bowler') ...[
+                            if (bowlerId.isNotEmpty) ...[
                               const SizedBox(width: 4),
                               Material(
                                 color: Colors.transparent,
@@ -94,18 +95,18 @@ class BowlerSection extends ConsumerWidget {
                         ),
                         if (bowlerLegalBalls > 0)
                           Text(
-                            '$overs.$ballsRemainder Overs  •  $bowlerRuns Runs',
+                            '$overs.$ballsRemainder Ov  •  $bowlerRuns Runs',
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: AppTheme.slateLight,
                               fontWeight: FontWeight.w500,
                             ),
                           )
                         else
                           const Text(
-                            'Tap to select bowler',
+                            'Tap to change bowler',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: AppTheme.slateLight,
                               fontWeight: FontWeight.w500,
                             ),
@@ -115,7 +116,7 @@ class BowlerSection extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Opacity(
-                    opacity: (legalBallsThisOver == 0 || bowlerId == 'Select Bowler') ? 1.0 : 0.4,
+                    opacity: (legalBallsThisOver == 0) ? 1.0 : 0.4,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -284,11 +285,12 @@ class BowlerSection extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final bowlerName = allBowlers[index];
                       final isDisabled = bowlerName == state.lastBowlerId;
-                      final legal = state.bowlerLegalBalls[bowlerName] ?? 0;
+                      final bIdx = state.bowlerNameToIndex[bowlerName];
+                      final legal = bIdx != null ? (state.bowlerLegalBalls[bIdx] ?? 0) : 0;
                       final overs = legal ~/ 6;
                       final rem = legal % 6;
-                      final wkts = state.bowlerWickets[bowlerName] ?? 0;
-                      final runs = state.bowlerRuns[bowlerName] ?? 0;
+                      final wkts = bIdx != null ? (state.bowlerWickets[bIdx] ?? 0) : 0;
+                      final runs = bIdx != null ? (state.bowlerRuns[bIdx] ?? 0) : 0;
 
                       final nameColor = isDisabled ? Colors.black45 : AppTheme.slateColor;
                       final statColor = isDisabled ? Colors.black45 : AppTheme.slateColor;

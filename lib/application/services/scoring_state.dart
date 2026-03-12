@@ -25,10 +25,14 @@ class ScoringState with _$ScoringState {
     required List<String> currentOverBalls,
     required List<String> previousBowlers,
     @Default(true) bool isTeamABatting,
-    @Default({}) Map<String, int> bowlerLegalBalls,
-    @Default({}) Map<String, int> bowlerDotBalls,
-    @Default({}) Map<String, int> bowlerWickets,
-    @Default({}) Map<String, int> bowlerRuns,
+    // Bowler registry: stable index ↔ display name
+    @Default({}) Map<String, int> bowlerNameToIndex,
+    @Default(0) int nextBowlerIndex,
+    // Bowler stats keyed by stable integer index (not fragile string names)
+    @Default({}) Map<int, int> bowlerLegalBalls,
+    @Default({}) Map<int, int> bowlerDotBalls,
+    @Default({}) Map<int, int> bowlerWickets,
+    @Default({}) Map<int, int> bowlerRuns,
     @Default(true) bool isFirstInnings,
     int? targetRuns,
     @Default(false) bool isMatchComplete,
@@ -42,3 +46,4 @@ class ScoringState with _$ScoringState {
 
   factory ScoringState.fromJson(Map<String, dynamic> json) => _$ScoringStateFromJson(json);
 }
+

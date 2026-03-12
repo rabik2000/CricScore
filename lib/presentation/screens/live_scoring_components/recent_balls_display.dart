@@ -59,7 +59,7 @@ class _RecentBallsState extends State<_RecentBalls> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 44,
+      height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
@@ -102,22 +102,51 @@ class _BallCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isSpecial = label == 'WD' || label == 'NB' || label == 'W';
+    // Determine colors based on label
+    Color bgColor = Colors.white;
+    Color borderColor = const Color(0xFFE2E8F0);
+    Color textColor = AppTheme.slateColor;
+
+    if (label.contains('W') && !label.contains('WD')) {
+      // Wicket - Red
+      bgColor = const Color(0xFFFF2D55);
+      borderColor = const Color(0xFFFF2D55);
+      textColor = Colors.white;
+    } else if (label == '4' || label == '6') {
+      // Boundary - Yellow/Amber
+      bgColor = const Color(0xFFFACC15);
+      borderColor = const Color(0xFFEAB308);
+      textColor = const Color(0xFF854D0E);
+    } else if (label.contains('WD') || label.contains('NB')) {
+      // Extras - Light Amber
+      bgColor = const Color(0xFFFFFBEB);
+      borderColor = const Color(0xFFFEF3C7);
+      textColor = const Color(0xFFD97706);
+    }
+
     return Container(
-      width: 36,
-      height: 36,
+      width: 48,
+      height: 48,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: isSpecial ? const Color(0xFFFFFBEB) : Colors.white,
+        color: bgColor,
         shape: BoxShape.circle,
-        border: Border.all(color: isSpecial ? const Color(0xFFFEF3C7) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: borderColor, width: 2),
+        boxShadow: [
+          if (label == '4' || label == '6' || label.contains('W'))
+            BoxShadow(
+              color: bgColor.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+        ],
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 18,
           fontWeight: FontWeight.w900,
-          color: label == 'W' ? const Color(0xFFFF2D55) : (isSpecial ? const Color(0xFFD97706) : AppTheme.slateColor),
+          color: textColor,
         ),
       ),
     );

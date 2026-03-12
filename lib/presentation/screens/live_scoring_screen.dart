@@ -71,20 +71,17 @@ class _MainContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ScoreboardCard(),
-                BatsmenSection(),
-                BowlerSection(),
-              ],
-            ),
-          ),
-        );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: const [
+          ScoreboardCard(),
+          BatsmenSection(),
+          BowlerSection(),
+        ],
+      ),
+    );
       },
     );
   }

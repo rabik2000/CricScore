@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/scoring_engine.dart';
 import '../services/scoring_state.dart';
+import '../services/undo_manager.dart';
+import '../services/match_lifecycle.dart';
 import '../../domain/entities/match.dart';
 import '../../domain/entities/ball_event.dart';
 import '../../domain/repositories/interfaces.dart';
@@ -68,8 +70,8 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
     final currentState = state.value;
     if (currentState == null) return;
     
-    // Validation: Ensure a bowler is selected
-    if (currentState.bowlerId == 'Select Bowler' || currentState.bowlerId.trim().isEmpty) {
+    // Validation: Ensure a bowler name is present
+    if (currentState.bowlerId.trim().isEmpty) {
       return;
     }
 
@@ -85,8 +87,7 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
 
     // Update local state and push to history
     final nextState = ScoringEngine.nextState(currentState, event);
-    final history = List<ScoringState>.from(currentState.history);
-    history.add(currentState.copyWith(history: [])); // Save state without its own history
+    final history = UndoManager.addToHistory(currentState);
 
     state = AsyncValue.data(nextState.copyWith(
       history: history,
@@ -97,27 +98,25 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
     await _ballRepository.recordBall(event);
 
     // Automatic innings finish if 10 wickets lost OR last man is out
-    if (nextState.totalWickets >= 10 || (nextState.isLastManMode && wicket)) {
+    if (MatchLifecycleManager.shouldAutoFinishInnings(nextState, wicket)) {
       await finishInnings();
     } else if (nextState.isMatchComplete) {
-       // Target chased down
-       await _updateMatchStatus(nextState.matchId, MatchStatus.completed);
+       // Target chased down — persist completed status
+       final match = await _matchRepository.getMatch(nextState.matchId);
+       if (match != null && match.status != MatchStatus.completed) {
+         await _matchRepository.updateMatch(match.copyWith(status: MatchStatus.completed));
+       }
     }
   }
 
   Future<void> undo() async {
     final currentState = state.value;
-    if (currentState == null || currentState.history.isEmpty) return;
+    if (currentState == null) return;
 
-    // Remove the last ball from the repository if it exists
-    if (currentState.lastBallId != null) {
-      await _ballRepository.deleteBall(currentState.lastBallId!);
+    final restoredState = await UndoManager.undo(currentState, _ballRepository);
+    if (restoredState != null) {
+      state = AsyncValue.data(restoredState);
     }
-
-    final history = List<ScoringState>.from(currentState.history);
-    final previousState = history.removeLast();
-    
-    state = AsyncValue.data(previousState.copyWith(history: history));
   }
 
   void updatePlayerName(String oldName, String newName) {
@@ -134,13 +133,6 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
     state = AsyncValue.data(nextState);
   }
 
-  Future<void> _updateMatchStatus(String matchId, MatchStatus status) async {
-    final match = await _matchRepository.getMatch(matchId);
-    if (match != null && match.status != status) {
-      await _matchRepository.updateMatch(match.copyWith(status: status));
-    }
-  }
-  
   void updateBowlerName(String newName) {
     final currentState = state.value;
     if (currentState == null) return;
@@ -162,12 +154,12 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
 
     var nextState = currentState;
     
-    // Update current bowler if it matches
+    // Update current bowler display name
     if (currentState.bowlerId == oldName) {
       nextState = nextState.copyWith(bowlerId: newName);
     }
 
-    // Update last bowler if it matches
+    // Update last bowler display name
     if (currentState.lastBowlerId == oldName) {
       nextState = nextState.copyWith(lastBowlerId: newName);
     }
@@ -181,99 +173,37 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
       previousBowlers.add(newName);
     }
 
-    // Update maps
-    final bowlerLegalBalls = Map<String, int>.from(currentState.bowlerLegalBalls);
-    if (bowlerLegalBalls.containsKey(oldName)) {
-      bowlerLegalBalls[newName] = bowlerLegalBalls.remove(oldName)!;
+    // Update the registry: transfer the stable index from oldName to newName
+    final registry = Map<String, int>.from(currentState.bowlerNameToIndex);
+    if (registry.containsKey(oldName)) {
+      final stableIndex = registry.remove(oldName)!;
+      registry[newName] = stableIndex;
     }
-
-    final bowlerDotBalls = Map<String, int>.from(currentState.bowlerDotBalls);
-    if (bowlerDotBalls.containsKey(oldName)) {
-      bowlerDotBalls[newName] = bowlerDotBalls.remove(oldName)!;
-    }
-
-    final bowlerWickets = Map<String, int>.from(currentState.bowlerWickets);
-    if (bowlerWickets.containsKey(oldName)) {
-      bowlerWickets[newName] = bowlerWickets.remove(oldName)!;
-    }
-
-    final bowlerRuns = Map<String, int>.from(currentState.bowlerRuns);
-    if (bowlerRuns.containsKey(oldName)) {
-      bowlerRuns[newName] = bowlerRuns.remove(oldName)!;
-    }
+    // Stats maps (bowlerLegalBalls, bowlerRuns, etc.) are keyed by int index,
+    // so they remain untouched — no fragile key renaming needed!
 
     state = AsyncValue.data(nextState.copyWith(
       previousBowlers: previousBowlers,
-      bowlerLegalBalls: bowlerLegalBalls,
-      bowlerDotBalls: bowlerDotBalls,
-      bowlerWickets: bowlerWickets,
-      bowlerRuns: bowlerRuns,
+      bowlerNameToIndex: registry,
     ));
   }
+
+
   
   Future<void> finishInnings() async {
     final currentState = state.value;
     if (currentState == null || currentState.isMatchComplete) return;
 
-    if (currentState.isFirstInnings) {
-      final nextState = currentState.copyWith(
-        isFirstInnings: false,
-        inningsId: 'innings2',
-        targetRuns: currentState.totalRuns + 1,
-        isTeamABatting: !currentState.isTeamABatting,
-        totalRuns: 0,
-        totalWickets: 0,
-        totalLegalBalls: 0,
-        legalBallsThisOver: 0,
-        currentOverBalls: [],
-        previousBowlers: ['Bowler 1'],
-        bowlerId: 'Bowler 1',
-        strikerId: 'Batsman 1',
-        nonStrikerId: 'Batsman 2',
-        strikerRuns: 0,
-        strikerBalls: 0,
-        nonStrikerRuns: 0,
-        nonStrikerBalls: 0,
-        bowlerLegalBalls: {},
-        bowlerDotBalls: {},
-        bowlerWickets: {},
-        bowlerRuns: {},
-        lastBowlerId: '',
-        isLastManMode: false,
-        canEnableLastMan: false,
-      );
-      state = AsyncValue.data(nextState);
-    } else {
-      // Second innings finish - calculate winner
-      String winnerMsg;
-      final battingTeam = currentState.isTeamABatting ? currentState.teamAName : currentState.teamBName;
-      final bowlingTeam = currentState.isTeamABatting ? currentState.teamBName : currentState.teamAName;
-      
-      if (currentState.targetRuns != null) {
-        if (currentState.totalRuns >= currentState.targetRuns!) {
-          winnerMsg = battingTeam;
-        } else if (currentState.totalRuns < currentState.targetRuns! - 1) {
-          winnerMsg = bowlingTeam;
-        } else {
-          winnerMsg = 'MATCH TIED';
-        }
-      } else {
-        winnerMsg = 'MATCH CONCLUDED';
-      }
-
-      state = AsyncValue.data(currentState.copyWith(
-        isMatchComplete: true,
-        winnerName: winnerMsg,
-      ));
-      
-      // Persist completed status
-      await _updateMatchStatus(currentState.matchId, MatchStatus.completed);
-    }
+    final nextState = await MatchLifecycleManager.finishInnings(
+      currentState,
+      _matchRepository,
+    );
+    state = AsyncValue.data(nextState);
   }
 
   void switchBatsmen() {
     final currentState = state.value;
-    if (currentState == null) return;
+    if (currentState == null || currentState.isLastManMode) return;
 
     // Allow switching if no balls have been bowled OR if the last ball was a wicket
     if ((currentState.totalLegalBalls == 0 && currentState.currentOverBalls.isEmpty) || currentState.lastBallWicket) {
@@ -293,10 +223,15 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
     if (currentState == null) return;
 
     if (!currentState.isLastManMode && currentState.canEnableLastMan) {
+      // When Last Man is enabled, the surviving batsman (non-striker) 
+      // becomes the striker to finish the game alone.
       state = AsyncValue.data(currentState.copyWith(
         isLastManMode: true,
         canEnableLastMan: false,
-        nonStrikerId: '---', // Clear non-striker
+        strikerId: currentState.nonStrikerId,
+        strikerRuns: currentState.nonStrikerRuns,
+        strikerBalls: currentState.nonStrikerBalls,
+        nonStrikerId: 'SOLO', 
         nonStrikerRuns: 0,
         nonStrikerBalls: 0,
       ));
@@ -342,9 +277,9 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
       inningsId: 'innings1',
       teamAName: teamAName,
       teamBName: teamBName,
-      strikerId: 'Select Striker',
-      nonStrikerId: 'Select Non-Striker',
-      bowlerId: 'Select Bowler',
+      strikerId: 'Batsman 1',
+      nonStrikerId: 'Batsman 2',
+      bowlerId: 'Bowler 1',
       totalRuns: 0,
       totalWickets: 0,
       legalBallsThisOver: 0,
@@ -357,18 +292,7 @@ class ScoringNotifier extends StateNotifier<AsyncValue<ScoringState>> {
     final sortedEvents = List<BallEvent>.from(events)..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     for (final event in sortedEvents) {
       if (event.inningsId != tempState.inningsId && tempState.isFirstInnings && event.inningsId == 'innings2') {
-         tempState = tempState.copyWith(
-            isFirstInnings: false,
-            inningsId: 'innings2',
-            targetRuns: tempState.totalRuns + 1,
-            isTeamABatting: !tempState.isTeamABatting,
-            totalRuns: 0, totalWickets: 0, totalLegalBalls: 0, legalBallsThisOver: 0,
-            currentOverBalls: [], previousBowlers: [], bowlerId: 'Select Bowler',
-            strikerId: 'Select Striker', nonStrikerId: 'Select Non-Striker',
-            strikerRuns: 0, strikerBalls: 0, nonStrikerRuns: 0, nonStrikerBalls: 0,
-            bowlerLegalBalls: {}, bowlerDotBalls: {}, bowlerWickets: {}, bowlerRuns: {},
-            lastBowlerId: '', isLastManMode: false, canEnableLastMan: false,
-          );
+        tempState = ScoringEngine.transitionToSecondInnings(tempState);
       }
       history.add(tempState.copyWith(history: []));
       tempState = ScoringEngine.nextState(tempState, event);

@@ -30,7 +30,6 @@ mixin _$Match {
       throw _privateConstructorUsedError; // 'bat' or 'bowl'
   MatchStatus get status => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
-  int? get targetRuns => throw _privateConstructorUsedError;
 
   /// Serializes this Match to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,7 +54,6 @@ abstract class $MatchCopyWith<$Res> {
     String? tossDecision,
     MatchStatus status,
     DateTime createdAt,
-    int? targetRuns,
   });
 }
 
@@ -82,7 +80,6 @@ class _$MatchCopyWithImpl<$Res, $Val extends Match>
     Object? tossDecision = freezed,
     Object? status = null,
     Object? createdAt = null,
-    Object? targetRuns = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -118,10 +115,6 @@ class _$MatchCopyWithImpl<$Res, $Val extends Match>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                       as DateTime,
-            targetRuns: freezed == targetRuns
-                ? _value.targetRuns
-                : targetRuns // ignore: cast_nullable_to_non_nullable
-                      as int?,
           )
           as $Val,
     );
@@ -145,7 +138,6 @@ abstract class _$$MatchImplCopyWith<$Res> implements $MatchCopyWith<$Res> {
     String? tossDecision,
     MatchStatus status,
     DateTime createdAt,
-    int? targetRuns,
   });
 }
 
@@ -171,7 +163,6 @@ class __$$MatchImplCopyWithImpl<$Res>
     Object? tossDecision = freezed,
     Object? status = null,
     Object? createdAt = null,
-    Object? targetRuns = freezed,
   }) {
     return _then(
       _$MatchImpl(
@@ -207,10 +198,6 @@ class __$$MatchImplCopyWithImpl<$Res>
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
                   as DateTime,
-        targetRuns: freezed == targetRuns
-            ? _value.targetRuns
-            : targetRuns // ignore: cast_nullable_to_non_nullable
-                  as int?,
       ),
     );
   }
@@ -228,7 +215,6 @@ class _$MatchImpl implements _Match {
     this.tossDecision,
     required this.status,
     required this.createdAt,
-    this.targetRuns,
   });
 
   factory _$MatchImpl.fromJson(Map<String, dynamic> json) =>
@@ -251,12 +237,10 @@ class _$MatchImpl implements _Match {
   final MatchStatus status;
   @override
   final DateTime createdAt;
-  @override
-  final int? targetRuns;
 
   @override
   String toString() {
-    return 'Match(id: $id, teamAId: $teamAId, teamBId: $teamBId, oversLimit: $oversLimit, tossWinnerId: $tossWinnerId, tossDecision: $tossDecision, status: $status, createdAt: $createdAt, targetRuns: $targetRuns)';
+    return 'Match(id: $id, teamAId: $teamAId, teamBId: $teamBId, oversLimit: $oversLimit, tossWinnerId: $tossWinnerId, tossDecision: $tossDecision, status: $status, createdAt: $createdAt)';
   }
 
   @override
@@ -275,9 +259,7 @@ class _$MatchImpl implements _Match {
                 other.tossDecision == tossDecision) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.targetRuns, targetRuns) ||
-                other.targetRuns == targetRuns));
+                other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -292,7 +274,6 @@ class _$MatchImpl implements _Match {
     tossDecision,
     status,
     createdAt,
-    targetRuns,
   );
 
   /// Create a copy of Match
@@ -319,7 +300,6 @@ abstract class _Match implements Match {
     final String? tossDecision,
     required final MatchStatus status,
     required final DateTime createdAt,
-    final int? targetRuns,
   }) = _$MatchImpl;
 
   factory _Match.fromJson(Map<String, dynamic> json) = _$MatchImpl.fromJson;
@@ -340,8 +320,6 @@ abstract class _Match implements Match {
   MatchStatus get status;
   @override
   DateTime get createdAt;
-  @override
-  int? get targetRuns;
 
   /// Create a copy of Match
   /// with the given fields replaced by the non-null parameter values.

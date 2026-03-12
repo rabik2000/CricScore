@@ -20,14 +20,16 @@ class BatsmenSection extends ConsumerWidget {
     final currentOverBallsEmpty = ref.watch(scoringProvider.select((s) => s.value?.currentOverBalls.isEmpty ?? true));
     final lastBallWicket = ref.watch(scoringProvider.select((s) => s.value?.lastBallWicket ?? false));
     final totalWickets = ref.watch(scoringProvider.select((s) => s.value?.totalWickets ?? 0));
+    final isMatchComplete = ref.watch(scoringProvider.select((s) => s.value?.isMatchComplete ?? false));
     final canEnableLastMan = ref.watch(scoringProvider.select((s) => s.value?.canEnableLastMan ?? false));
     final isLastManMode = ref.watch(scoringProvider.select((s) => s.value?.isLastManMode ?? false));
 
     return Column(
       children: [
-        if (totalWickets >= 3)
+        const SizedBox(height: 4),
+        if (!isMatchComplete && (canEnableLastMan || isLastManMode))
           Padding(
-            padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+            padding: const EdgeInsets.only(bottom: 6.0, left: 4.0),
             child: Row(
               children: [
                 GestureDetector(
@@ -86,19 +88,17 @@ class BatsmenSection extends ConsumerWidget {
                     isStriking: true,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 300),
-                    opacity: isLastManMode ? 0.3 : 1.0,
+                if (!isLastManMode) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
                     child: BatsmanCard(
-                      name: isLastManMode ? 'SOLO' : nonStrikerId,
-                      runs: isLastManMode ? 0 : nonStrikerRuns,
-                      balls: isLastManMode ? 0 : nonStrikerBalls,
+                      name: nonStrikerId,
+                      runs: nonStrikerRuns,
+                      balls: nonStrikerBalls,
                       isStriking: false,
                     ),
                   ),
-                ),
+                ],
               ],
             ),
             if (((totalLegalBalls == 0 && currentOverBallsEmpty) || lastBallWicket) && !isLastManMode)
@@ -121,7 +121,7 @@ class BatsmenSection extends ConsumerWidget {
               ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 4),
         Center(
           child: Material(
             color: Colors.white,
@@ -135,28 +135,21 @@ class BatsmenSection extends ConsumerWidget {
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppTheme.slateColor.withValues(alpha: 0.08)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.analytics_rounded, size: 20, color: AppTheme.slateColor),
-                    SizedBox(width: 10),
+                    Icon(Icons.analytics_rounded, size: 16, color: AppTheme.slateColor),
+                    SizedBox(width: 8),
                     Text(
-                      'VIEW FULL SCORECARD',
+                      'SCORECARD',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 13,
+                        fontSize: 11,
                         color: AppTheme.slateColor,
                         letterSpacing: 0.8,
                       ),

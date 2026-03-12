@@ -145,7 +145,7 @@ class StatsCalculator {
       if (event.isCorrected) continue;
 
       final bowlerId = event.bowlerId;
-      if (bowlerId == 'Select Bowler') continue;
+      if (bowlerId.isEmpty) continue;
       
       if (!seenBowlers.contains(bowlerId)) {
         seenBowlers.add(bowlerId);

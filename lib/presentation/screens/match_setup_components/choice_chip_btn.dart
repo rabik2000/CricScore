@@ -20,7 +20,7 @@ class ChoiceChipBtn extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        height: 42,
+        height: 40,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.slateColor : AppTheme.bgColor,

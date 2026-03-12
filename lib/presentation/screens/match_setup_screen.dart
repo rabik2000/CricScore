@@ -59,11 +59,13 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
             child: Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 500),
-                child: Column(
+                child: ListView(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
                   children: [
                     // === CUSTOM APP BAR ===
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
                         children: [
                           IconButton(
@@ -92,7 +94,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
 
                   // === TEAMS SECTION ===
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(28),
@@ -122,7 +124,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -135,7 +137,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: AppTheme.bgColor,
                                 shape: BoxShape.circle,
@@ -158,12 +160,11 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // === TOSS SECTION ===
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(28),
@@ -225,12 +226,10 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                             ],
                           ),
                           
-                          // Coin area - More compact
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: TossCoin(onResult: _onTossComplete),
-                            ),
+                          // Coin area
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Center(child: TossCoin(onResult: _onTossComplete)),
                           ),
 
                           // Toss selections - Compacted
@@ -243,7 +242,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                             child: Column(
                               children: [
                                 _miniLabel('WHO WON THE TOSS?'),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 10),
                                 ValueListenableBuilder<TextEditingValue>(
                                   valueListenable: _teamAController,
                                   builder: (context, teamA, _) => ValueListenableBuilder<TextEditingValue>(
@@ -273,9 +272,9 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                                     },
                                   ),
                                 ),
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 16),
                                 _miniLabel('CHOSE TO'),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 10),
                                 Row(
                                   children: [
                                     Expanded(
@@ -301,13 +300,11 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                         ],
                       ),
                     ),
-                  ),
                   const SizedBox(height: 24),
-
                   // === START BUTTON ===
                   SizedBox(
                     width: double.infinity,
-                    height: 60,
+                    height: 58,
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
@@ -327,10 +324,10 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                           final teamAName = _teamAController.text.trim().isEmpty ? 'Warriors' : _teamAController.text.trim();
                           final teamBName = _teamBController.text.trim().isEmpty ? 'Titans' : _teamBController.text.trim();
                           
-                          // Placeholders for players - they'll be selected later
-                          const strikerName = 'Select Striker';
-                          const nonStrikerName = 'Select Non-Striker';
-                          const bowlerName = 'Select Bowler';
+                          // Default player names
+                          const strikerName = 'Batsman 1';
+                          const nonStrikerName = 'Batsman 2';
+                          const bowlerName = 'Bowler 1';
 
                           bool teamABatsFirst;
                           if (_tossWinner == 'Team A') {
@@ -423,7 +420,7 @@ class _TeamEntry extends StatelessWidget {
         Text(label, style: TextStyle(
           fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.slateLight.withValues(alpha: 0.6),
         )),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         TextField(
           controller: controller,
           textAlign: alignment == CrossAxisAlignment.start ? TextAlign.start : TextAlign.end,
