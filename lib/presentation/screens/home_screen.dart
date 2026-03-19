@@ -6,6 +6,7 @@ import '../../domain/entities/match.dart';
 import 'live_scoring_screen.dart';
 import 'match_setup_screen.dart';
 import 'match_history_screen.dart';
+import 'scorecard_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -478,46 +479,91 @@ class RecentMatchTile extends ConsumerWidget {
                     ],
                   ),
                 ),
-                if (isPaused)
-                  InkWell(
-                    onTap: () async {
-                      await ref.read(scoringProvider.notifier).resumeMatch(
-                        match,
-                        match.teamAId,
-                        match.teamBId,
-                      );
-                      if (context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const LiveScoringScreen()),
-                        );
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.emeraldColor.withValues(alpha: 0.1),
-                        border: Border(top: BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.05))),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.play_arrow_rounded, size: 20, color: AppTheme.emeraldColor),
-                          SizedBox(width: 8),
-                          Text(
-                            'RESUME MATCH',
-                            style: TextStyle(
-                              color: AppTheme.emeraldColor,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12,
-                              letterSpacing: 1,
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.05))),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            await ref.read(scoringProvider.notifier).resumeMatch(
+                              match,
+                              match.teamAId,
+                              match.teamBId,
+                            );
+                            if (context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ScorecardScreen()),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            color: AppTheme.emeraldColor.withValues(alpha: 0.18),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.description_outlined, size: 18, color: AppTheme.emeraldColor),
+                                SizedBox(width: 8),
+                                Text(
+                                  'SCORECARD',
+                                  style: TextStyle(
+                                    color: AppTheme.emeraldColor,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 12,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                      if (isPaused)
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              await ref.read(scoringProvider.notifier).resumeMatch(
+                                match,
+                                match.teamAId,
+                                match.teamBId,
+                              );
+                              if (context.mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const LiveScoringScreen()),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              color: AppTheme.emeraldColor.withValues(alpha: 0.1),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.play_arrow_rounded, size: 20, color: AppTheme.emeraldColor),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'RESUME MATCH',
+                                    style: TextStyle(
+                                      color: AppTheme.emeraldColor,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
+                ),
               ],
             ),
           ),

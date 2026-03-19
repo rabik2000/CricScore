@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:hive/hive.dart';
 import '../../domain/entities/match.dart';
 import '../../domain/entities/ball_event.dart';
 import '../../domain/entities/team.dart';
@@ -8,6 +9,37 @@ import '../../domain/repositories/interfaces.dart';
 class LocalMatchRepository implements MatchRepository {
   static final Map<String, Match> _matches = {};
   static final _controller = StreamController<List<Match>>.broadcast();
+  static const String _matchesBoxName = 'matchesBox';
+  static const String _matchesKey = 'matches';
+  static bool _isHydrated = false;
+  static Future<void>? _initFuture;
+
+  Future<void> _ensureInitialized() {
+    _initFuture ??= _hydrateFromHive();
+    return _initFuture!;
+  }
+
+  Future<void> _hydrateFromHive() async {
+    if (_isHydrated) return;
+    final box = await Hive.openBox(_matchesBoxName);
+    final raw = box.get(_matchesKey);
+    if (raw is List) {
+      for (final item in raw) {
+        if (item is Map) {
+          final json = Map<String, dynamic>.from(item);
+          final match = Match.fromJson(json);
+          _matches[match.id] = match;
+        }
+      }
+    }
+    _isHydrated = true;
+  }
+
+  Future<void> _persistToHive() async {
+    final box = await Hive.openBox(_matchesBoxName);
+    final serialized = _matches.values.map((m) => m.toJson()).toList();
+    await box.put(_matchesKey, serialized);
+  }
 
   void _notify() {
     _controller.add(_matches.values.toList());
@@ -15,35 +47,49 @@ class LocalMatchRepository implements MatchRepository {
 
   @override
   Future<void> createMatch(Match match) async {
+    await _ensureInitialized();
     _matches[match.id] = match;
+    await _persistToHive();
     _notify();
   }
 
   @override
   Future<void> updateMatch(Match match) async {
+    await _ensureInitialized();
     _matches[match.id] = match;
+    await _persistToHive();
     _notify();
   }
 
   @override
   Future<void> deleteMatch(String matchId) async {
+    await _ensureInitialized();
     _matches.remove(matchId);
+    await _persistToHive();
     _notify();
   }
 
   @override
   Future<Match?> getMatch(String id) async {
+    await _ensureInitialized();
     return _matches[id];
   }
 
   @override
   Stream<Match?> watchMatch(String id) async* {
+    await _ensureInitialized();
     yield _matches[id];
-    yield* _controller.stream.map((matches) => matches.firstWhere((m) => m.id == id));
+    yield* _controller.stream.map((matches) {
+      for (final match in matches) {
+        if (match.id == id) return match;
+      }
+      return null;
+    });
   }
 
   @override
   Future<List<Match>> getPastMatches() async {
+    await _ensureInitialized();
     return _matches.values
         .where((m) => m.status == MatchStatus.completed)
         .toList();
@@ -51,6 +97,7 @@ class LocalMatchRepository implements MatchRepository {
 
   @override
   Future<List<Match>> getLiveMatches() async {
+    await _ensureInitialized();
     return _matches.values
         .where((m) => m.status == MatchStatus.live || m.status == MatchStatus.scheduled)
         .toList();
@@ -58,6 +105,7 @@ class LocalMatchRepository implements MatchRepository {
 
   @override
   Stream<List<Match>> watchLiveMatches() async* {
+    await _ensureInitialized();
     yield await getLiveMatches();
     yield* _controller.stream.map((matches) => matches
         .where((m) => m.status == MatchStatus.live || m.status == MatchStatus.scheduled)
