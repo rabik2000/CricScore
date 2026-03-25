@@ -19,7 +19,6 @@ class BatsmenSection extends ConsumerWidget {
     final totalLegalBalls = ref.watch(scoringProvider.select((s) => s.value?.totalLegalBalls ?? 0));
     final currentOverBallsEmpty = ref.watch(scoringProvider.select((s) => s.value?.currentOverBalls.isEmpty ?? true));
     final lastBallWicket = ref.watch(scoringProvider.select((s) => s.value?.lastBallWicket ?? false));
-    final totalWickets = ref.watch(scoringProvider.select((s) => s.value?.totalWickets ?? 0));
     final isMatchComplete = ref.watch(scoringProvider.select((s) => s.value?.isMatchComplete ?? false));
     final canEnableLastMan = ref.watch(scoringProvider.select((s) => s.value?.canEnableLastMan ?? false));
     final isLastManMode = ref.watch(scoringProvider.select((s) => s.value?.isLastManMode ?? false));

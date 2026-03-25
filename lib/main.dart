@@ -10,6 +10,7 @@ Future<void> main() async {
   await Hive.initFlutter();
   await Hive.openBox('appBox');
   await Hive.openBox('matchesBox');
+  await Hive.openBox('ballsBox');
   
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,

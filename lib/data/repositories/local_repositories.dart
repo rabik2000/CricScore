@@ -26,9 +26,13 @@ class LocalMatchRepository implements MatchRepository {
     if (raw is List) {
       for (final item in raw) {
         if (item is Map) {
-          final json = Map<String, dynamic>.from(item);
-          final match = Match.fromJson(json);
-          _matches[match.id] = match;
+          try {
+            final json = Map<String, dynamic>.from(item);
+            final match = Match.fromJson(json);
+            _matches[match.id] = match;
+          } catch (_) {
+            // Ignore a single bad persisted row instead of failing app startup.
+          }
         }
       }
     }
@@ -42,7 +46,9 @@ class LocalMatchRepository implements MatchRepository {
   }
 
   void _notify() {
-    _controller.add(_matches.values.toList());
+    final sorted = _matches.values.toList()
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    _controller.add(sorted);
   }
 
   @override
@@ -98,9 +104,11 @@ class LocalMatchRepository implements MatchRepository {
   @override
   Future<List<Match>> getLiveMatches() async {
     await _ensureInitialized();
-    return _matches.values
+    final live = _matches.values
         .where((m) => m.status == MatchStatus.live || m.status == MatchStatus.scheduled)
         .toList();
+    live.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return live;
   }
 
   @override
@@ -117,14 +125,70 @@ class LocalBallRepository implements BallRepository {
   static final List<BallEvent> _events = [];
   static final _controller = StreamController<List<BallEvent>>.broadcast();
 
+  static const String _ballsBoxName = 'ballsBox';
+  static const String _ballsKey = 'events';
+  static bool _isHydrated = false;
+  static Future<void>? _initFuture;
+  static Box<dynamic>? _box;
+
+  Future<void> _ensureInitialized() {
+    _initFuture ??= _hydrateFromHive();
+    return _initFuture!;
+  }
+
+  Future<void> _hydrateFromHive() async {
+    if (_isHydrated) return;
+    _box = await Hive.openBox(_ballsBoxName);
+    final raw = _box!.get(_ballsKey);
+    if (raw is List) {
+      for (final item in raw) {
+        if (item is Map) {
+          try {
+            final json = Map<String, dynamic>.from(item);
+            final event = BallEvent.fromJson(json);
+            _events.add(event);
+          } catch (_) {
+            // Ignore corrupted event rows to keep app usable in production.
+          }
+        }
+      }
+      _events.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    }
+    _isHydrated = true;
+  }
+
+  Future<void> _appendToHive(BallEvent event) async {
+    final box = _box!;
+    final stored = box.get(_ballsKey);
+    final list = (stored is List) ? List<dynamic>.from(stored) : <dynamic>[];
+    list.add(event.toJson());
+    await box.put(_ballsKey, list);
+  }
+
+  Future<void> _persistFullToHive() async {
+    final box = _box!;
+    final serialized = _events.map((e) => e.toJson()).toList();
+    await box.put(_ballsKey, serialized);
+  }
+
   @override
   Future<void> recordBall(BallEvent event) async {
+    await _ensureInitialized();
     _events.add(event);
+    // Emit immediately so UI listeners update without waiting for disk I/O.
     _controller.add(List.from(_events));
+    // Incremental write to avoid re-serializing the entire event list.
+    // Fire-and-forget persistence to keep the scoring UI responsive.
+    unawaited(
+      _appendToHive(event).catchError((_) {
+        // If persistence fails, we still keep the in-memory scoring state working.
+      }),
+    );
   }
 
   @override
   Stream<List<BallEvent>> watchBallEvents(String matchId, String? inningsId) async* {
+    await _ensureInitialized();
     // Yield current events immediately
     yield _events
         .where((e) => e.matchId == matchId && (inningsId == null || e.inningsId == inningsId))
@@ -138,16 +202,21 @@ class LocalBallRepository implements BallRepository {
 
   @override
   Future<void> updateBall(BallEvent event) async {
+    await _ensureInitialized();
     final index = _events.indexWhere((e) => e.id == event.id);
     if (index != -1) {
       _events[index] = event;
+      // Updates are less frequent than recordBall, so full persist is acceptable.
+      await _persistFullToHive();
       _controller.add(List.from(_events));
     }
   }
 
   @override
   Future<void> deleteBall(String ballId) async {
+    await _ensureInitialized();
     _events.removeWhere((e) => e.id == ballId);
+    await _persistFullToHive();
     _controller.add(List.from(_events));
   }
 }

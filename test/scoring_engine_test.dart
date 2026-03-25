@@ -1,14 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cricket_scorer/application/services/scoring_engine.dart';
 import 'package:cricket_scorer/application/services/scoring_state.dart';
-import 'package:cricket_scorer/domain/entities/ball_event.dart';
 
 void main() {
   group('ScoringEngine', () {
     late ScoringState initialState;
 
     setUp(() {
-      initialState = ScoringState(
+      initialState = const ScoringState(
         matchId: 'test-match',
         inningsId: 'innings1',
         teamAName: 'Team A',

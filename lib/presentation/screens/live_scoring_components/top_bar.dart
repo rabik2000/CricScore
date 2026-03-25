@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../application/providers/scoring_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../home_screen.dart';
+import 'scorecard_exporter.dart';
 
 class TopBar extends ConsumerWidget {
   const TopBar({super.key});
@@ -11,6 +13,7 @@ class TopBar extends ConsumerWidget {
     final teamAName = ref.watch(scoringProvider.select((s) => s.value?.teamAName ?? ''));
     final teamBName = ref.watch(scoringProvider.select((s) => s.value?.teamBName ?? ''));
     final isTeamABatting = ref.watch(scoringProvider.select((s) => s.value?.isTeamABatting ?? true));
+    final isFinal = ref.watch(scoringProvider.select((s) => s.value?.isMatchComplete ?? false));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -24,33 +27,41 @@ class TopBar extends ConsumerWidget {
             icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.slateColor, size: 20),
             onPressed: () {
               ref.invalidate(matchesProvider);
-              Navigator.pop(context);
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+                (route) => false,
+              );
             },
           ),
           Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _TeamNameBox(
-                  name: teamAName,
-                  isBatting: isTeamABatting,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Text(
-                    'vs',
-                    style: TextStyle(
-                      color: AppTheme.slateLight,
-                      fontWeight: FontWeight.w600,
-                      fontStyle: FontStyle.italic,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _TeamNameBox(
+                    name: teamAName,
+                    isBatting: isTeamABatting,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Text(
+                      'vs',
+                      style: TextStyle(
+                        color: AppTheme.slateLight,
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
-                ),
-                _TeamNameBox(
-                  name: teamBName,
-                  isBatting: !isTeamABatting,
-                ),
-              ],
+                  _TeamNameBox(
+                    name: teamBName,
+                    isBatting: !isTeamABatting,
+                  ),
+                ],
+              ),
             ),
           ),
           IconButton(
@@ -71,9 +82,44 @@ class TopBar extends ConsumerWidget {
               }
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.insights_rounded, color: AppTheme.slateColor),
-            onPressed: () {},
+          SizedBox(
+            width: 56,
+            child: InkWell(
+              onTap: () async {
+                try {
+                  await exportScorecardsToPngAndShare(context: context, ref: ref);
+                } catch (_) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Export failed. Please try again.')),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.download_for_offline_rounded,
+                      color: AppTheme.slateColor,
+                      size: 22,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isFinal ? 'FINAL' : 'PARTIAL',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: isFinal ? AppTheme.emeraldColor : const Color(0xFFF59E0B),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -104,6 +150,8 @@ class _TeamNameBox extends StatelessWidget {
         children: [
           Text(
             name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w900,

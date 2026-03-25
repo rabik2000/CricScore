@@ -84,12 +84,13 @@ class _TossCoinState extends State<TossCoin> with SingleTickerProviderStateMixin
                 showHeads = true;
               }
 
+              final scaleFactor = 1.0 + (value < 0.5 ? value : 1.0 - value) * 0.3;
               return Transform(
                 alignment: Alignment.center,
                 transform: Matrix4.identity()
                   ..setEntry(3, 2, 0.001)
                   ..rotateY(value * 3.14159 * 14)
-                  ..scale((1.0 + (value < 0.5 ? value : 1.0 - value) * 0.3)),
+                  ..multiply(Matrix4.diagonal3Values(scaleFactor, scaleFactor, 1.0)),
                 child: _ProgrammaticCoin(showHeads: showHeads, size: 120),
               );
             },

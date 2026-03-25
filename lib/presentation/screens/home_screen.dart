@@ -29,35 +29,27 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   // Header Section
                   Text(
-                    'CricScore'.toUpperCase(),
+                    'TurfScore'.toUpperCase(),
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: FontWeight.w900,
                       color: AppTheme.emeraldColor,
-                      letterSpacing: 4,
+                      letterSpacing: 3.6,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Professional Cricket\nScoring Made Simple',
+                    'Score Smarter.\nPlay Better.',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 30,
                       fontWeight: FontWeight.w900,
                       color: colorScheme.onSurface,
-                      letterSpacing: -1,
-                      height: 1.1,
+                      letterSpacing: -0.8,
+                      height: 1.15,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Container(
-                    height: 4,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      color: AppTheme.emeraldColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 36),
 
                   // Action Cards Section
                   Row(
@@ -468,11 +460,27 @@ class RecentMatchTile extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          IconButton(
-                            onPressed: onDelete,
-                            icon: const Icon(Icons.delete_outline_rounded),
-                            color: Colors.redAccent.withValues(alpha: 0.4),
-                            tooltip: 'Delete match',
+                          Tooltip(
+                            message: 'Delete match',
+                            child: InkWell(
+                              onTap: onDelete,
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: Colors.redAccent.withValues(alpha: 0.25),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 22,
+                                  color: Colors.redAccent,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -502,17 +510,22 @@ class RecentMatchTile extends ConsumerWidget {
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            color: AppTheme.emeraldColor.withValues(alpha: 0.18),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: AppTheme.emeraldColor,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.15),
+                              ),
+                            ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.description_outlined, size: 18, color: AppTheme.emeraldColor),
+                                Icon(Icons.description_outlined, size: 18, color: Colors.white),
                                 SizedBox(width: 8),
                                 Text(
                                   'SCORECARD',
                                   style: TextStyle(
-                                    color: AppTheme.emeraldColor,
+                                    color: Colors.white,
                                     fontWeight: FontWeight.w900,
                                     fontSize: 12,
                                     letterSpacing: 1,
@@ -532,11 +545,25 @@ class RecentMatchTile extends ConsumerWidget {
                                 match.teamAId,
                                 match.teamBId,
                               );
+                              final resumedState = ref.read(scoringProvider).value;
+                              final canOpenLive = resumedState != null &&
+                                  resumedState.teamAName.trim().isNotEmpty &&
+                                  resumedState.teamBName.trim().isNotEmpty &&
+                                  resumedState.strikerId.trim().isNotEmpty &&
+                                  resumedState.nonStrikerId.trim().isNotEmpty;
                               if (context.mounted) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const LiveScoringScreen()),
-                                );
+                                if (canOpenLive) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const LiveScoringScreen()),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Could not resume this match. Please start a new match.'),
+                                    ),
+                                  );
+                                }
                               }
                             },
                             child: Container(

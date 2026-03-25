@@ -199,13 +199,17 @@ class _KeyRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
+    // Fixed height: [bottomNavigationBar] can give unbounded max height; a bare Row with
+    // CrossAxisAlignment.stretch would receive h=∞ and assert. Same keyboard in a Column
+    // body path gets bounded constraints from [Expanded].
+    return SizedBox(
+      height: 52,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (int i = 0; i < children.length; i++) ...[
             if (i > 0) const SizedBox(width: 10),
-            Expanded(child: SizedBox(height: 52, child: children[i])),
+            Expanded(child: children[i]),
           ],
         ],
       ),
